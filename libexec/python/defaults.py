@@ -99,16 +99,19 @@ if COLORIZE is not None:
 DISABLE_CACHE = convert2boolean(getenv("SINGULARITY_DISABLE_CACHE",
                                 default=False))
 
-if DISABLE_CACHE == True:
-    SINGULARITY_CACHE = tempfile.mkdtemp()
-else:
+if DISABLE_CACHE != True:
     userhome = pwd.getpwuid(os.getuid())[5]
     _cache = os.path.join(userhome,".singularity") 
     SINGULARITY_CACHE = getenv("SINGULARITY_CACHEDIR", default=_cache)
+    try:
+        if not os.path.exists(SINGULARITY_CACHE):
+            os.mkdir(SINGULARITY_CACHE)
+    except OSError as err:
+        # Check err.errno == 13 ?
+        DISABLE_CACHE = True
 
-if not os.path.exists(SINGULARITY_CACHE):
-    os.mkdir(SINGULARITY_CACHE)
-
+if DISABLE_CACHE == True:
+    SINGULARITY_CACHE = tempfile.mkdtemp()
 
 #######################################################################
 # Docker
